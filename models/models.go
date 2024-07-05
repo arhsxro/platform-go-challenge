@@ -42,3 +42,8 @@ type Audience struct {
 	SocialMediaHours   int    `json:"socialMediaHours"`
 	PurchasesLastMonth int    `json:"purchasesLastMonth"`
 }
+
+type AssetError struct {
+	Asset Asset
+	Err   error
+}

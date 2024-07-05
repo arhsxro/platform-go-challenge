@@ -26,6 +26,7 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/favorites/{user_id}", api.HandleGetFavorites).Methods("GET")
 	router.HandleFunc("/favorites/{user_id}", api.HandleAddFavorite).Methods("POST")
+	router.HandleFunc("/multiple/favorites/{user_id}", api.HandleAddMultipleFavorites).Methods("POST")
 	router.HandleFunc("/favorites/{user_id}/{asset_id}", api.HandleRemoveFavorite).Methods("DELETE")
 	router.HandleFunc("/favorites/{user_id}/{asset_id}", api.HandleEditDescription).Methods("PUT")
 
