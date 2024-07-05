@@ -20,6 +20,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
+	log.Println("Connection to db established")
 	api.Init(db)
 
 	router := mux.NewRouter()

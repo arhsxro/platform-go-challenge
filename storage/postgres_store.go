@@ -1,7 +1,9 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
+	"log"
 
 	"github.com/arhsxro/platform-go-challenge/config"
 	"github.com/arhsxro/platform-go-challenge/models"
@@ -11,6 +13,15 @@ import (
 
 type PostgresStore struct {
 	db *sqlx.DB
+}
+
+func isValidAssetType(paramType string) bool {
+	for _, validType := range models.ValidAssetTypes {
+		if models.AssetType(paramType) == validType {
+			return true
+		}
+	}
+	return false
 }
 
 func NewPostgresStore(cfg *config.Config) (*PostgresStore, error) {
@@ -23,16 +34,29 @@ func NewPostgresStore(cfg *config.Config) (*PostgresStore, error) {
 }
 
 // Retrieves a user's favorite assets from the database
-func (store *PostgresStore) GetUserFavorites(userID string) ([]models.Asset, error) {
+func (store *PostgresStore) GetUserFavorites(userID, filterType string, page, pageSize int) ([]models.Asset, error) {
 	var assets []models.Asset
-	query := "SELECT asset_id, type, description, data FROM assets WHERE user_id = $1"
-	err := store.db.Select(&assets, query, userID)
+	var query string
+	var err error
+	offset := (page - 1) * pageSize
+	if filterType != "" {
+		if !isValidAssetType(filterType) {
+			log.Println("Invalid asset type")
+			return nil, errors.New("invalid asset type")
+		}
+		query = "SELECT asset_id, type, description, data FROM assets WHERE user_id = $1 and type = $2 LIMIT $3 OFFSET $4"
+		err = store.db.Select(&assets, query, userID, filterType, pageSize, offset)
+	} else {
+		query = "SELECT asset_id, type, description, data FROM assets WHERE user_id = $1 LIMIT $2 OFFSET $3"
+		err = store.db.Select(&assets, query, userID, pageSize, offset)
+	}
+
 	return assets, err
 }
 
-// Adds a new favorite asset to a user in the database
+// Adds a new favorite asset for a user in the database
 func (store *PostgresStore) AddFavorite(userID string, asset models.Asset) error {
-	tx, err := store.db.Begin()
+	tx, err := store.db.Begin() //begin transaction
 	if err != nil {
 		return err
 	}

@@ -16,6 +16,8 @@ const (
 	AudienceType AssetType = "Audience"
 )
 
+var ValidAssetTypes = []AssetType{ChartType, InsightType, AudienceType}
+
 type Asset struct {
 	ID          string          `json:"id" db:"asset_id"`
 	Type        AssetType       `json:"type" db:"type"`
