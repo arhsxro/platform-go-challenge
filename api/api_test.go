@@ -281,19 +281,16 @@ func TestHandleAddFavorites_NormalFlow(t *testing.T) {
 		Data:        json.RawMessage(`{"text": "only 15% of the people in Greece watch One Piece"}`),
 	}
 
-	// Serialize the request body to JSON
 	body, err := json.Marshal(requestBody)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Create a new POST request with the JSON body
 	req, err := http.NewRequest("POST", "/favorites/test_user", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Set the Content-Type header to application/json
 	req.Header.Set("Content-Type", "application/json")
 	router := mux.NewRouter()
 	router.HandleFunc("/favorites/{user_id}", HandleAddFavorite)
@@ -311,13 +308,11 @@ func TestHandleAddFavorites_InvalidPayload(t *testing.T) {
 
 	invalidRequestBody := `{"id":123, "type": 456, "description": 789, "data": "not a valid json"}`
 
-	// Create a new POST request with the JSON body
 	req, err := http.NewRequest("POST", "/favorites/test_user", bytes.NewBufferString(invalidRequestBody))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Set the Content-Type header to application/json
 	req.Header.Set("Content-Type", "application/json")
 	router := mux.NewRouter()
 	router.HandleFunc("/favorites/{user_id}", HandleAddFavorite)
@@ -345,13 +340,11 @@ func TestHandleAddFavorites_ContextTimeout(t *testing.T) {
 		Data:        json.RawMessage(`{"text": "only 15% of the people in Greece watch One Piece"}`),
 	}
 
-	// Serialize the request body to JSON
 	body, err := json.Marshal(requestBody)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Create a new POST request with the JSON body
 	req, err := http.NewRequest("POST", "/favorites/test_user", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatal(err)
@@ -359,7 +352,6 @@ func TestHandleAddFavorites_ContextTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	// Set the Content-Type header to application/json
 	req.Header.Set("Content-Type", "application/json")
 	router := mux.NewRouter()
 	router.HandleFunc("/favorites/{user_id}", HandleAddFavorite)
@@ -383,19 +375,16 @@ func TestHandleAddFavorites_QueryFailed(t *testing.T) {
 		Data:        json.RawMessage(`{"text": "only 15% of the people in Greece watch One Piece"}`),
 	}
 
-	// Serialize the request body to JSON
 	body, err := json.Marshal(requestBody)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Create a new POST request with the JSON body
 	req, err := http.NewRequest("POST", "/favorites/test_user", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Set the Content-Type header to application/json
 	req.Header.Set("Content-Type", "application/json")
 	router := mux.NewRouter()
 	router.HandleFunc("/favorites/{user_id}", HandleAddFavorite)
@@ -413,7 +402,6 @@ func TestHandleRemoveFavorites_NormalFlow(t *testing.T) {
 	mockStore := &MockStore{}
 	Init(mockStore)
 
-	// Create a new POST request with the JSON body
 	req, err := http.NewRequest("DELETE", "/favorites/test_user/test_asset", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -434,7 +422,6 @@ func TestHandleRemoveFavorites_ContextTimeout(t *testing.T) {
 	Init(mockStore)
 	mockStore.RemoveFavoriteFunc = mockStore.RemoveFavoriteTimeout
 
-	// Create a new POST request with the JSON body
 	req, err := http.NewRequest("DELETE", "/favorites/test_user/test_asset", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -458,7 +445,6 @@ func TestHandleRemoveFavorites_QueryFailed(t *testing.T) {
 	Init(mockStore)
 	mockStore.RemoveFavoriteFunc = mockStore.RemoveFavoriteQueryFailed
 
-	// Create a new POST request with the JSON body
 	req, err := http.NewRequest("DELETE", "/favorites/test_user/test_asset", nil)
 	if err != nil {
 		t.Fatal(err)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,11 +12,12 @@ import (
 
 	"github.com/arhsxro/platform-go-challenge/models"
 	"github.com/arhsxro/platform-go-challenge/storage"
+	"github.com/arhsxro/platform-go-challenge/utils"
 
 	"github.com/gorilla/mux"
 )
 
-var db storage.Store // Use the interface
+var db storage.Store
 
 func Init(dbInstance storage.Store) {
 	db = dbInstance
@@ -57,7 +57,7 @@ func HandleGetFavorites(w http.ResponseWriter, r *http.Request) {
 	log.Println("userid : " + userID + " type : " + filterType + " page : " + pageStr + " page size : " + pageSizeStr)
 
 	var assets []models.Asset
-	err = retryWithExponentialBackoff(ctx, func() error {
+	err = utils.RetryWithExponentialBackoff(ctx, func() error {
 		var err error
 		assets, err = db.GetUserFavorites(ctx, userID, filterType, page, pageSize)
 		return err
@@ -100,7 +100,7 @@ func HandleAddFavorite(w http.ResponseWriter, r *http.Request) {
 	log.Println("Asset to be added -> asset id : "+
 		asset.ID, asset.Type, asset.Description, string(asset.Data))
 
-	err = retryWithExponentialBackoff(ctx, func() error {
+	err = utils.RetryWithExponentialBackoff(ctx, func() error {
 		return db.AddFavorite(ctx, userID, asset)
 	})
 
@@ -142,7 +142,7 @@ func HandleAddMultipleFavorites(w http.ResponseWriter, r *http.Request) {
 		wg.Add(1)
 		go func(asset models.Asset) {
 			defer wg.Done()
-			err = retryWithExponentialBackoff(ctx, func() error {
+			err = utils.RetryWithExponentialBackoff(ctx, func() error {
 				return db.AddFavorite(ctx, userID, asset)
 			})
 			if err != nil {
@@ -181,7 +181,7 @@ func HandleRemoveFavorite(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("DELETE request received for user : ", userID+" with asset id : "+assetID)
 
-	err := retryWithExponentialBackoff(ctx, func() error {
+	err := utils.RetryWithExponentialBackoff(ctx, func() error {
 		return db.RemoveFavorite(ctx, userID, assetID)
 	})
 
@@ -221,7 +221,7 @@ func HandleEditDescription(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Asset to be edited--> asset id : " + assetID + " and updateDescreption : " + updatedDescription.Description)
 
-	err = retryWithExponentialBackoff(ctx, func() error {
+	err = utils.RetryWithExponentialBackoff(ctx, func() error {
 		return db.UpdateDescription(ctx, userID, assetID, updatedDescription.Description)
 	})
 
@@ -236,31 +236,4 @@ func HandleEditDescription(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-}
-
-// Retry function with exponential backoff
-func retryWithExponentialBackoff(ctx context.Context, operation func() error) error {
-	const maxAttempts = 3
-	var err error
-	for attempt := 0; attempt < maxAttempts; attempt++ {
-		err = operation()
-		if err == nil {
-			return nil
-		}
-
-		if ctx.Err() != nil {
-			return ctx.Err()
-		}
-
-		backoff := time.Duration(attempt) * time.Second
-		backoff += time.Duration(rand.Intn(1000)) * time.Millisecond
-
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(backoff):
-		}
-	}
-	log.Println("Reached all the retry attemps ")
-	return err
 }
