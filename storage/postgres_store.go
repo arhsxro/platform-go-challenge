@@ -90,7 +90,7 @@ func (store *PostgresStore) RemoveFavorite(ctx context.Context, userID, assetID 
 }
 
 // Updates an asset's description from a user in the database
-func (store *PostgresStore) UpdateFavoriteDescription(ctx context.Context, userID, assetID, newDescription string) error {
+func (store *PostgresStore) UpdateDescription(ctx context.Context, userID, assetID, newDescription string) error {
 	query := "UPDATE assets SET description = $1 WHERE user_id = $2 AND asset_id = $3"
 	_, err := store.db.ExecContext(ctx, query, newDescription, userID, assetID)
 	return err

@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,9 +17,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var db *storage.PostgresStore
+var db storage.Store // Use the interface
 
-func Init(dbInstance *storage.PostgresStore) {
+func Init(dbInstance storage.Store) {
 	db = dbInstance
 }
 
@@ -65,8 +66,11 @@ func HandleGetFavorites(w http.ResponseWriter, r *http.Request) {
 		if err == context.DeadlineExceeded {
 			log.Println("Request timed out:", err)
 			http.Error(w, "Request timed out", http.StatusGatewayTimeout)
+		} else if strings.Contains(err.Error(), "invalid asset type") {
+			log.Println("Invalid asset type", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		} else {
-			log.Println("Invalid asset type or Query failed", err)
+			log.Println("Error on executing the query ", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
@@ -105,7 +109,7 @@ func HandleAddFavorite(w http.ResponseWriter, r *http.Request) {
 			log.Println("Request timed out: ", err)
 			http.Error(w, "Request timed out", http.StatusGatewayTimeout)
 		} else {
-			log.Println("Error on executing the query", err)
+			log.Println("Error on executing the query ", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
@@ -218,7 +222,7 @@ func HandleEditDescription(w http.ResponseWriter, r *http.Request) {
 	log.Println("Asset to be edited--> asset id : " + assetID + " and updateDescreption : " + updatedDescription.Description)
 
 	err = retryWithExponentialBackoff(ctx, func() error {
-		return db.UpdateFavoriteDescription(ctx, userID, assetID, updatedDescription.Description)
+		return db.UpdateDescription(ctx, userID, assetID, updatedDescription.Description)
 	})
 
 	if err != nil {
@@ -257,6 +261,6 @@ func retryWithExponentialBackoff(ctx context.Context, operation func() error) er
 		case <-time.After(backoff):
 		}
 	}
-	log.Println("Reached all the retry attemps")
+	log.Println("Reached all the retry attemps ")
 	return err
 }

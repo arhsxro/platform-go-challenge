@@ -8,7 +8,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// Creates a new PostgreSQL database connection.
+// Creates a new db connection.
 func NewPostgresDB(cfg *config.Config) (*sqlx.DB, error) {
 	connStr := fmt.Sprintf("user=%s dbname=%s password=%s host=%s port=%s sslmode=disable",
 		cfg.DBUsername, cfg.DBName, cfg.DBPassword, cfg.DBHost, cfg.DBPort)
@@ -22,4 +22,11 @@ func NewPostgresDB(cfg *config.Config) (*sqlx.DB, error) {
 	}
 
 	return db, nil
+}
+
+func (store *PostgresStore) Close() error {
+	if store.db != nil {
+		return store.db.Close()
+	}
+	return nil
 }

@@ -15,12 +15,18 @@ var db *storage.PostgresStore
 func main() {
 
 	cfg := config.LoadConfig()
-	var err error
-	db, err = storage.NewPostgresStore(cfg)
+
+	// Initialize database
+	dbInstance, err := storage.NewPostgresStore(cfg)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	log.Println("Connection to db established")
+	defer dbInstance.Close() // assuming Close method is implemented in PostgresStore
+
+	// Assign the database instance to the interface
+	db = dbInstance
+
+	// Initialize API with the database instance
 	api.Init(db)
 
 	router := mux.NewRouter()
