@@ -42,7 +42,6 @@ func (m *MockStore) GetUserFavoritesInvalidType(ctx context.Context, userID, fil
 		return nil, errors.New("invalid asset type")
 	}
 
-	// Return empty assets slice to simulate no data found
 	return []models.Asset{}, nil
 }
 
@@ -139,7 +138,7 @@ func (m *MockStore) UpdateDescriptionQueryFailed(ctx context.Context, userID, as
 }
 
 func (m *MockStore) Close() error {
-	// Mock implementation, you can customize as needed
+
 	return nil
 }
 
@@ -510,7 +509,7 @@ func TestHandleEditDescription_ContextTimeout(t *testing.T) {
 	mockStore := &MockStore{}
 	Init(mockStore)
 
-	mockStore.UpdateDescriptionFunc = mockStore.UpdateDescriptionQueryFailed
+	mockStore.UpdateDescriptionFunc = mockStore.UpdateDescriptionTimeout
 
 	requestBody := `{"description": "Updated description for the asset"}`
 	req, err := http.NewRequest("PUT", "/favorites/test_user/test_asset", bytes.NewBufferString(requestBody))

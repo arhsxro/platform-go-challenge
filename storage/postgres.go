@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/arhsxro/platform-go-challenge/config"
 	"github.com/jmoiron/sqlx"
@@ -16,6 +17,11 @@ func NewPostgresDB(cfg *config.Config) (*sqlx.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	//These values can be set accordingly to the usecase in order to optimize resource usage
+	db.SetMaxOpenConns(20)
+	db.SetMaxIdleConns(2)
+	db.SetConnMaxLifetime(15 * time.Minute)
 
 	if err := db.Ping(); err != nil {
 		return nil, err

@@ -50,7 +50,7 @@ func (store *PostgresStore) GetUserFavorites(ctx context.Context, userID, filter
 		err = store.db.SelectContext(ctx, &assets, query, userID, filterType, pageSize, offset)
 	} else {
 		query = "SELECT asset_id, type, description, data FROM assets WHERE user_id = $1 LIMIT $2 OFFSET $3"
-		err = store.db.Select(&assets, query, userID, pageSize, offset)
+		err = store.db.SelectContext(ctx, &assets, query, userID, pageSize, offset)
 	}
 
 	return assets, err
@@ -84,14 +84,41 @@ func (store *PostgresStore) AddFavorite(ctx context.Context, userID string, asse
 
 // Removes an asset from a user in the database
 func (store *PostgresStore) RemoveFavorite(ctx context.Context, userID, assetID string) error {
+	tx, err := store.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	query := "DELETE FROM assets WHERE user_id = $1 AND asset_id = $2"
-	_, err := store.db.ExecContext(ctx, query, userID, assetID)
-	return err
+	_, err = store.db.ExecContext(ctx, query, userID, assetID)
+	if err != nil {
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Updates an asset's description from a user in the database
 func (store *PostgresStore) UpdateDescription(ctx context.Context, userID, assetID, newDescription string) error {
+	tx, err := store.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
 	query := "UPDATE assets SET description = $1 WHERE user_id = $2 AND asset_id = $3"
-	_, err := store.db.ExecContext(ctx, query, newDescription, userID, assetID)
-	return err
+	_, err = store.db.ExecContext(ctx, query, newDescription, userID, assetID)
+	if err != nil {
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }
