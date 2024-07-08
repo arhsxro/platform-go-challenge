@@ -32,6 +32,6 @@ INSERT INTO assets (user_id, asset_id, type, description, data) VALUES
 
 -- Insert initial assets for user3
 INSERT INTO assets (user_id, asset_id, type, description, data) VALUES
-('user3', 'chart3', 'Chart', 'A test chart', '{"title": "Yet Another Sample Chart", "axisTitle": "Test Axis", "data": [500, 0]}'),
+('user3', 'chart3', 'Chart', 'A test chart', '{"title": "Another Sample Chart", "axisTitle": "Test Axis", "data": [500, 0]}'),
 ('user3', 'insight3', 'Insight', 'A test text', '{"text": "90% of the third age spend zero time on social media."}'),
 ('user3', 'audience3', 'Audience', 'A test Audience characteristics', '{"gender": "Male", "birthCountry": "Greece", "ageGroup": "70-80", "socialMediaHours": 0, "purchasesLastMonth": 0}');

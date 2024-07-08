@@ -10,7 +10,7 @@ COPY . .
 
 RUN go build -o main .
 
-FROM alpine:latest
+FROM gcr.io/distroless/static
 
 WORKDIR /root/
 
