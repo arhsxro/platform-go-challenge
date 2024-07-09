@@ -233,6 +233,7 @@ func HandleEditDescription(w http.ResponseWriter, r *http.Request) {
 			log.Println("Error on executing the query ", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
