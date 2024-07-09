@@ -89,3 +89,5 @@ NOTE :
 I created a init.sql script which will be executed when we first run the app and it basically creates
 
 the tables we need with some dummy data in order to test our endpoints.
+
+**If we already have a another postgres instance in our machine we should terminate it in order for the script to run!!
