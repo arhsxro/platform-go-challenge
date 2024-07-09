@@ -3,9 +3,8 @@ package models
 import "encoding/json"
 
 type User struct {
-	ID         string  `json:"id"`
-	UserID     string  `json:"user_id" db:"user_id"`
-	Favourites []Asset `json:"favourites"`
+	ID     string `json:"id"`
+	UserID string `json:"user_id" db:"user_id"`
 }
 
 type AssetType string
@@ -23,24 +22,6 @@ type Asset struct {
 	Type        AssetType       `json:"type" db:"type"`
 	Description string          `json:"description" db:"description"`
 	Data        json.RawMessage `json:"data" db:"data"`
-}
-
-type Chart struct {
-	Title     string `json:"title"`
-	AxisTitle string `json:"axisTitle"`
-	Data      []int  `json:"data"`
-}
-
-type Insight struct {
-	Text string `json:"text"`
-}
-
-type Audience struct {
-	Gender             string `json:"gender"`
-	BirthCountry       string `json:"birthCountry"`
-	AgeGroup           string `json:"ageGroup"`
-	SocialMediaHours   int    `json:"socialMediaHours"`
-	PurchasesLastMonth int    `json:"purchasesLastMonth"`
 }
 
 type AssetError struct {
