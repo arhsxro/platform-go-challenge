@@ -23,7 +23,6 @@ type MockStore struct {
 	UpdateDescriptionFunc func(ctx context.Context, userID, assetID, newDescription string) error
 }
 
-// default mock iimplementation for get user's favorite assets
 func (m *MockStore) GetUserFavorites(ctx context.Context, userID, filterType string, page, pageSize int) ([]models.Asset, error) {
 	if m.GetUserFavoritesFunc != nil {
 		return m.GetUserFavoritesFunc(ctx, userID, filterType, page, pageSize)
@@ -35,7 +34,6 @@ func (m *MockStore) GetUserFavorites(ctx context.Context, userID, filterType str
 	return assets, nil
 }
 
-// Mock implementation for testing invalid asset type scenario
 func (m *MockStore) GetUserFavoritesInvalidType(ctx context.Context, userID, filterType string, page, pageSize int) ([]models.Asset, error) {
 	if filterType != "" && !isValidAssetType(filterType) {
 		return nil, errors.New("invalid asset type")
@@ -44,7 +42,6 @@ func (m *MockStore) GetUserFavoritesInvalidType(ctx context.Context, userID, fil
 	return []models.Asset{}, nil
 }
 
-// Mock implementation for testing context timeout
 func (m *MockStore) GetUserFavoritesTimeout(ctx context.Context, userID, filterType string, page, pageSize int) ([]models.Asset, error) {
 	time.Sleep(5 * time.Second)
 	select {
@@ -59,12 +56,10 @@ func (m *MockStore) GetUserFavoritesTimeout(ctx context.Context, userID, filterT
 	}
 }
 
-// Mock implementation for testing failed query
 func (m *MockStore) GetUserFavoritesQueryFailed(ctx context.Context, userID, filterType string, page, pageSize int) ([]models.Asset, error) {
 	return nil, errors.New("database error: maximum connections reached")
 }
 
-// default mock iimplementation for add favorite
 func (m *MockStore) AddFavorite(ctx context.Context, userID string, asset models.Asset) error {
 	if m.AddFavoriteFunc != nil {
 		return m.AddFavoriteFunc(ctx, userID, asset)
@@ -72,7 +67,6 @@ func (m *MockStore) AddFavorite(ctx context.Context, userID string, asset models
 	return nil
 }
 
-// Mock implementation for testing context timeout
 func (m *MockStore) AddFavoriteTimeout(ctx context.Context, userID string, asset models.Asset) error {
 	time.Sleep(5 * time.Second)
 	select {
@@ -83,12 +77,10 @@ func (m *MockStore) AddFavoriteTimeout(ctx context.Context, userID string, asset
 	}
 }
 
-// Mock implementation for testing query failed
 func (m *MockStore) AddFavoriteQueryFailed(ctx context.Context, userID string, asset models.Asset) error {
 	return errors.New("database error: maximum connections reached")
 }
 
-// Default Mock implementation for remove favorite
 func (m *MockStore) RemoveFavorite(ctx context.Context, userID, assetID string) error {
 	if m.RemoveFavoriteFunc != nil {
 		return m.RemoveFavoriteFunc(ctx, userID, assetID)
@@ -96,7 +88,6 @@ func (m *MockStore) RemoveFavorite(ctx context.Context, userID, assetID string) 
 	return nil
 }
 
-// Mock implementation for testing context timeout
 func (m *MockStore) RemoveFavoriteTimeout(ctx context.Context, userID, assetID string) error {
 	time.Sleep(5 * time.Second)
 	select {
@@ -107,7 +98,6 @@ func (m *MockStore) RemoveFavoriteTimeout(ctx context.Context, userID, assetID s
 	}
 }
 
-// Mock implementation for testing query failed
 func (m *MockStore) RemoveFavoriteQueryFailed(ctx context.Context, userID, assetID string) error {
 	return errors.New("database error: maximum connections reached")
 }
@@ -120,7 +110,6 @@ func (m *MockStore) UpdateDescription(ctx context.Context, userID, assetID, newD
 	return nil
 }
 
-// Mock implementation for testing context timeout
 func (m *MockStore) UpdateDescriptionTimeout(ctx context.Context, userID, assetID, newDescription string) error {
 	time.Sleep(5 * time.Second)
 	select {
@@ -131,7 +120,6 @@ func (m *MockStore) UpdateDescriptionTimeout(ctx context.Context, userID, assetI
 	}
 }
 
-// Mock implementation for testing query failed
 func (m *MockStore) UpdateDescriptionQueryFailed(ctx context.Context, userID, assetID, newDescription string) error {
 	return errors.New("database error: maximum connections reached")
 }
