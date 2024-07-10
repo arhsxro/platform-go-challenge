@@ -25,7 +25,6 @@ type MockStore struct {
 
 // default mock iimplementation for get user's favorite assets
 func (m *MockStore) GetUserFavorites(ctx context.Context, userID, filterType string, page, pageSize int) ([]models.Asset, error) {
-	// Mock data, replace with your default test data as needed
 	if m.GetUserFavoritesFunc != nil {
 		return m.GetUserFavoritesFunc(ctx, userID, filterType, page, pageSize)
 	}
