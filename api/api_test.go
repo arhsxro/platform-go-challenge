@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/arhsxro/platform-go-challenge/models"
-	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -142,15 +141,15 @@ func isValidAssetType(paramType string) bool {
 func TestHandleGetFavorites_ValidRequestWithFilter(t *testing.T) {
 
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
 
 	req, err := http.NewRequest("GET", "/favorites/test_user?type=Chart", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}", HandleGetFavorites)
+	router.HandleFunc("/favorites/{user_id}", api.HandleGetFavorites)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
@@ -165,15 +164,15 @@ func TestHandleGetFavorites_ValidRequestWithFilter(t *testing.T) {
 
 func TestHandleGetFavorites_ValidRequestWithoutFilter(t *testing.T) {
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
 
 	req, err := http.NewRequest("GET", "/favorites/test_user", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}", HandleGetFavorites)
+	router.HandleFunc("/favorites/{user_id}", api.HandleGetFavorites)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
@@ -188,7 +187,8 @@ func TestHandleGetFavorites_ValidRequestWithoutFilter(t *testing.T) {
 
 func TestHandleGetFavorites_InvalidAssetType(t *testing.T) {
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
 
 	mockStore.GetUserFavoritesFunc = mockStore.GetUserFavoritesInvalidType
 
@@ -196,8 +196,8 @@ func TestHandleGetFavorites_InvalidAssetType(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}", HandleGetFavorites)
+
+	router.HandleFunc("/favorites/{user_id}", api.HandleGetFavorites)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
@@ -210,7 +210,8 @@ func TestHandleGetFavorites_InvalidAssetType(t *testing.T) {
 func TestHandleGetFavorites_ContextRequestTimeout(t *testing.T) {
 
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
 
 	mockStore.GetUserFavoritesFunc = mockStore.GetUserFavoritesTimeout
 
@@ -223,8 +224,7 @@ func TestHandleGetFavorites_ContextRequestTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}", HandleGetFavorites)
+	router.HandleFunc("/favorites/{user_id}", api.HandleGetFavorites)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req.WithContext(ctx))
@@ -235,7 +235,8 @@ func TestHandleGetFavorites_ContextRequestTimeout(t *testing.T) {
 func TestHandleGetFavorites_QueryFailed(t *testing.T) {
 
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
 
 	mockStore.GetUserFavoritesFunc = mockStore.GetUserFavoritesQueryFailed
 
@@ -244,8 +245,7 @@ func TestHandleGetFavorites_QueryFailed(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}", HandleGetFavorites)
+	router.HandleFunc("/favorites/{user_id}", api.HandleGetFavorites)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
@@ -258,7 +258,8 @@ func TestHandleGetFavorites_QueryFailed(t *testing.T) {
 func TestHandleAddFavorites_NormalFlow(t *testing.T) {
 
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
 
 	requestBody := models.Asset{
 		ID:          "insight2",
@@ -278,8 +279,7 @@ func TestHandleAddFavorites_NormalFlow(t *testing.T) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}", HandleAddFavorite)
+	router.HandleFunc("/favorites/{user_id}", api.HandleAddFavorite)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
@@ -290,7 +290,8 @@ func TestHandleAddFavorites_NormalFlow(t *testing.T) {
 func TestHandleAddFavorites_InvalidPayload(t *testing.T) {
 
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
 
 	invalidRequestBody := `{"id":123, "type": 456, "description": 789, "data": "not a valid json"}`
 
@@ -300,8 +301,7 @@ func TestHandleAddFavorites_InvalidPayload(t *testing.T) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}", HandleAddFavorite)
+	router.HandleFunc("/favorites/{user_id}", api.HandleAddFavorite)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
@@ -315,7 +315,8 @@ func TestHandleAddFavorites_InvalidPayload(t *testing.T) {
 func TestHandleAddFavorites_ContextTimeout(t *testing.T) {
 
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
 
 	mockStore.AddFavoriteFunc = mockStore.AddFavoriteTimeout
 
@@ -339,8 +340,7 @@ func TestHandleAddFavorites_ContextTimeout(t *testing.T) {
 	defer cancel()
 
 	req.Header.Set("Content-Type", "application/json")
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}", HandleAddFavorite)
+	router.HandleFunc("/favorites/{user_id}", api.HandleAddFavorite)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req.WithContext(ctx))
@@ -351,7 +351,9 @@ func TestHandleAddFavorites_ContextTimeout(t *testing.T) {
 func TestHandleAddFavorites_QueryFailed(t *testing.T) {
 
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
+
 	mockStore.AddFavoriteFunc = mockStore.AddFavoriteQueryFailed
 
 	requestBody := models.Asset{
@@ -372,8 +374,8 @@ func TestHandleAddFavorites_QueryFailed(t *testing.T) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}", HandleAddFavorite)
+
+	router.HandleFunc("/favorites/{user_id}", api.HandleAddFavorite)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
@@ -386,15 +388,15 @@ func TestHandleAddFavorites_QueryFailed(t *testing.T) {
 func TestHandleRemoveFavorites_NormalFlow(t *testing.T) {
 
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
 
 	req, err := http.NewRequest("DELETE", "/favorites/test_user/test_asset", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}/{asset_id}", HandleRemoveFavorite)
+	router.HandleFunc("/favorites/{user_id}/{asset_id}", api.HandleRemoveFavorite)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
@@ -405,7 +407,9 @@ func TestHandleRemoveFavorites_NormalFlow(t *testing.T) {
 func TestHandleRemoveFavorites_ContextTimeout(t *testing.T) {
 
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
+
 	mockStore.RemoveFavoriteFunc = mockStore.RemoveFavoriteTimeout
 
 	req, err := http.NewRequest("DELETE", "/favorites/test_user/test_asset", nil)
@@ -416,8 +420,7 @@ func TestHandleRemoveFavorites_ContextTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}/{asset_id}", HandleRemoveFavorite)
+	router.HandleFunc("/favorites/{user_id}/{asset_id}", api.HandleRemoveFavorite)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req.WithContext(ctx))
@@ -428,7 +431,9 @@ func TestHandleRemoveFavorites_ContextTimeout(t *testing.T) {
 func TestHandleRemoveFavorites_QueryFailed(t *testing.T) {
 
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
+
 	mockStore.RemoveFavoriteFunc = mockStore.RemoveFavoriteQueryFailed
 
 	req, err := http.NewRequest("DELETE", "/favorites/test_user/test_asset", nil)
@@ -436,8 +441,7 @@ func TestHandleRemoveFavorites_QueryFailed(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}/{asset_id}", HandleRemoveFavorite)
+	router.HandleFunc("/favorites/{user_id}/{asset_id}", api.HandleRemoveFavorite)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
@@ -450,7 +454,8 @@ func TestHandleRemoveFavorites_QueryFailed(t *testing.T) {
 func TestHandleEditDescription_NormalFlow(t *testing.T) {
 
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
 
 	requestBody := `{"description": "Updated description for the asset"}`
 	req, err := http.NewRequest("PUT", "/favorites/test_user/test_asset", bytes.NewBufferString(requestBody))
@@ -459,8 +464,7 @@ func TestHandleEditDescription_NormalFlow(t *testing.T) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}/{asset_id}", HandleEditDescription)
+	router.HandleFunc("/favorites/{user_id}/{asset_id}", api.HandleEditDescription)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
@@ -471,7 +475,8 @@ func TestHandleEditDescription_NormalFlow(t *testing.T) {
 func TestHandleEditDescription_InvalidPayload(t *testing.T) {
 
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
 
 	invalidRequestBody := `{"description": "Updated description for the asset"`
 	req, err := http.NewRequest("PUT", "/favorites/test_user/asset1", bytes.NewBufferString(invalidRequestBody))
@@ -480,8 +485,7 @@ func TestHandleEditDescription_InvalidPayload(t *testing.T) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}/{asset_id}", HandleEditDescription)
+	router.HandleFunc("/favorites/{user_id}/{asset_id}", api.HandleEditDescription)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
@@ -494,7 +498,8 @@ func TestHandleEditDescription_InvalidPayload(t *testing.T) {
 func TestHandleEditDescription_ContextTimeout(t *testing.T) {
 
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
 
 	mockStore.UpdateDescriptionFunc = mockStore.UpdateDescriptionTimeout
 
@@ -506,8 +511,7 @@ func TestHandleEditDescription_ContextTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}/{asset_id}", HandleEditDescription)
+	router.HandleFunc("/favorites/{user_id}/{asset_id}", api.HandleEditDescription)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req.WithContext(ctx))
@@ -518,7 +522,8 @@ func TestHandleEditDescription_ContextTimeout(t *testing.T) {
 func TestHandleEditDescription_QueryFailed(t *testing.T) {
 
 	mockStore := &MockStore{}
-	Init(mockStore)
+	api := InitApi(mockStore)
+	router := api.InitRoutes()
 
 	mockStore.UpdateDescriptionFunc = mockStore.UpdateDescriptionQueryFailed
 
@@ -528,8 +533,7 @@ func TestHandleEditDescription_QueryFailed(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}/{asset_id}", HandleEditDescription)
+	router.HandleFunc("/favorites/{user_id}/{asset_id}", api.HandleEditDescription)
 
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)

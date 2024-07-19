@@ -17,10 +17,22 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var db storage.Store
+type API struct {
+	db storage.Store
+}
 
-func Init(dbInstance storage.Store) {
-	db = dbInstance
+func InitApi(dbInstance storage.Store) *API {
+	return &API{db: dbInstance}
+}
+
+func (api *API) InitRoutes() *mux.Router {
+	router := mux.NewRouter()
+	router.HandleFunc("/favorites/{user_id}", api.HandleGetFavorites).Methods("GET")
+	router.HandleFunc("/favorites/{user_id}", api.HandleAddFavorite).Methods("POST")
+	router.HandleFunc("/multiple/favorites/{user_id}", api.HandleAddMultipleFavorites).Methods("POST")
+	router.HandleFunc("/favorites/{user_id}/{asset_id}", api.HandleRemoveFavorite).Methods("DELETE")
+	router.HandleFunc("/favorites/{user_id}/{asset_id}", api.HandleEditDescription).Methods("PUT")
+	return router
 }
 
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
@@ -30,7 +42,7 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	return json.NewEncoder(w).Encode(v)
 }
 
-func HandleGetFavorites(w http.ResponseWriter, r *http.Request) {
+func (api *API) HandleGetFavorites(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
@@ -59,7 +71,7 @@ func HandleGetFavorites(w http.ResponseWriter, r *http.Request) {
 	var assets []models.Asset
 	err = utils.RetryWithExponentialBackoff(ctx, func() error {
 		var err error
-		assets, err = db.GetUserFavorites(ctx, userID, filterType, page, pageSize)
+		assets, err = api.db.GetUserFavorites(ctx, userID, filterType, page, pageSize)
 		return err
 	})
 	if err != nil {
@@ -83,7 +95,7 @@ func HandleGetFavorites(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func HandleAddFavorite(w http.ResponseWriter, r *http.Request) {
+func (api *API) HandleAddFavorite(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
@@ -101,7 +113,7 @@ func HandleAddFavorite(w http.ResponseWriter, r *http.Request) {
 		asset.ID, asset.Type, asset.Description, string(asset.Data))
 
 	err = utils.RetryWithExponentialBackoff(ctx, func() error {
-		return db.AddFavorite(ctx, userID, asset)
+		return api.db.AddFavorite(ctx, userID, asset)
 	})
 
 	if err != nil {
@@ -117,7 +129,7 @@ func HandleAddFavorite(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func HandleAddMultipleFavorites(w http.ResponseWriter, r *http.Request) {
+func (api *API) HandleAddMultipleFavorites(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
@@ -143,7 +155,7 @@ func HandleAddMultipleFavorites(w http.ResponseWriter, r *http.Request) {
 		go func(asset models.Asset) {
 			defer wg.Done()
 			err = utils.RetryWithExponentialBackoff(ctx, func() error {
-				return db.AddFavorite(ctx, userID, asset)
+				return api.db.AddFavorite(ctx, userID, asset)
 			})
 			if err != nil {
 
@@ -172,7 +184,7 @@ func HandleAddMultipleFavorites(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func HandleRemoveFavorite(w http.ResponseWriter, r *http.Request) {
+func (api *API) HandleRemoveFavorite(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
@@ -182,7 +194,7 @@ func HandleRemoveFavorite(w http.ResponseWriter, r *http.Request) {
 	log.Println("DELETE request received for user : ", userID+" with asset id : "+assetID)
 
 	err := utils.RetryWithExponentialBackoff(ctx, func() error {
-		return db.RemoveFavorite(ctx, userID, assetID)
+		return api.db.RemoveFavorite(ctx, userID, assetID)
 	})
 
 	if err != nil {
@@ -199,7 +211,7 @@ func HandleRemoveFavorite(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func HandleEditDescription(w http.ResponseWriter, r *http.Request) {
+func (api *API) HandleEditDescription(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
@@ -222,7 +234,7 @@ func HandleEditDescription(w http.ResponseWriter, r *http.Request) {
 	log.Println("Asset to be edited--> asset id : " + assetID + " and updateDescreption : " + updatedDescription.Description)
 
 	err = utils.RetryWithExponentialBackoff(ctx, func() error {
-		return db.UpdateDescription(ctx, userID, assetID, updatedDescription.Description)
+		return api.db.UpdateDescription(ctx, userID, assetID, updatedDescription.Description)
 	})
 
 	if err != nil {

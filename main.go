@@ -9,10 +9,7 @@ import (
 	"github.com/arhsxro/platform-go-challenge/api"
 	"github.com/arhsxro/platform-go-challenge/config"
 	"github.com/arhsxro/platform-go-challenge/storage"
-	"github.com/gorilla/mux"
 )
-
-var db *storage.PostgresStore
 
 func main() {
 
@@ -37,17 +34,9 @@ func main() {
 	}
 	defer dbInstance.Close()
 
-	db = dbInstance
-
 	// Initialize API with the database instance
-	api.Init(db)
-
-	router := mux.NewRouter()
-	router.HandleFunc("/favorites/{user_id}", api.HandleGetFavorites).Methods("GET")
-	router.HandleFunc("/favorites/{user_id}", api.HandleAddFavorite).Methods("POST")
-	router.HandleFunc("/multiple/favorites/{user_id}", api.HandleAddMultipleFavorites).Methods("POST")
-	router.HandleFunc("/favorites/{user_id}/{asset_id}", api.HandleRemoveFavorite).Methods("DELETE")
-	router.HandleFunc("/favorites/{user_id}/{asset_id}", api.HandleEditDescription).Methods("PUT")
+	apiInstance := api.InitApi(dbInstance)
+	router := apiInstance.InitRoutes()
 
 	http.ListenAndServe(":8080", router)
 }
