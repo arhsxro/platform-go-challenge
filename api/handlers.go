@@ -165,10 +165,8 @@ func (api *API) HandleAddMultipleFavorites(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Wait for all goroutines to finish and close the error channel
-	go func() {
-		wg.Wait()
-		close(errCh)
-	}()
+	wg.Wait()
+	close(errCh)
 
 	// Check for errors in goroutines
 	for assetErr := range errCh {
