@@ -154,12 +154,12 @@ func (api *API) HandleAddMultipleFavorites(w http.ResponseWriter, r *http.Reques
 		wg.Add(1)
 		go func(asset models.Asset) {
 			defer wg.Done()
-			err = utils.RetryWithExponentialBackoff(ctx, func() error {
+			localErr := utils.RetryWithExponentialBackoff(ctx, func() error {
 				return api.db.AddFavorite(ctx, userID, asset)
 			})
-			if err != nil {
+			if localErr != nil {
 
-				errCh <- &models.AssetError{Asset: asset, Err: err}
+				errCh <- &models.AssetError{Asset: asset, Err: localErr}
 			}
 		}(asset)
 	}
